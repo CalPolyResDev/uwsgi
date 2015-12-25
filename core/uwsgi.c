@@ -4463,7 +4463,8 @@ void uwsgi_opt_set_env_ticked(char *opt, char *value, void *none) {
 			char *stripped_value = calloc(strlen(value) - 2, sizeof(char));
 			
 			size_t stripped_index = 0;
-			for (size_t i=0; i < strlen(value); ++i) {
+			size_t i;
+			for (i=0; i < strlen(value); ++i) {
 				if (i == first_quote_index || i == second_quote_index) {
 					continue;
 				}
