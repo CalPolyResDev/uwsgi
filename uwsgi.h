@@ -3878,6 +3878,7 @@ void uwsgi_opt_set_gid(char *, char *, void *);
 void uwsgi_opt_set_immediate_uid(char *, char *, void *);
 void uwsgi_opt_set_immediate_gid(char *, char *, void *);
 void uwsgi_opt_set_env(char *, char *, void *);
+void uwsgi_opt_set_env_ticked(char *, char *, void *);
 void uwsgi_opt_unset_env(char *, char *, void *);
 void uwsgi_opt_pidfile_signal(char *, char *, void *);
 
