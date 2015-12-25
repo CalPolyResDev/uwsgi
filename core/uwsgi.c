@@ -968,6 +968,7 @@ static struct uwsgi_option uwsgi_base_options[] = {
 	{"mode", required_argument, 0, "set uWSGI custom mode", uwsgi_opt_set_str, &uwsgi.mode, 0},
 	{"env", required_argument, 0, "set environment variable", uwsgi_opt_set_env, NULL, 0},
     {"env-ticked", required_argument, 0, "set environment variable with value that may be quoted", uwsgi_opt_set_env_ticked, NULL, 0},
+	{"ienv-ticked", required_argument, 0, "set environment variable with value that may be quoted", uwsgi_opt_set_env_ticked, NULL,UWSGI_OPT_IMMEDIATE},
 	{"ienv", required_argument, 0, "set environment variable (IMMEDIATE version)", uwsgi_opt_set_env, NULL, UWSGI_OPT_IMMEDIATE},
 	{"envdir", required_argument, 0, "load a daemontools compatible envdir", uwsgi_opt_add_string_list, &uwsgi.envdirs, 0},
 	{"early-envdir", required_argument, 0, "load a daemontools compatible envdir ASAP", uwsgi_opt_envdir, NULL, UWSGI_OPT_IMMEDIATE},
