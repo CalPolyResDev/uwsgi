@@ -10,6 +10,7 @@
 *.key
 *.orig
 *.rej
+*.xcodeproj
 
 /uwsgi
 /uwsgibuild.*

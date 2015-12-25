@@ -967,7 +967,7 @@ static struct uwsgi_option uwsgi_base_options[] = {
 	{"close-on-exec2", no_argument, 0, "set close-on-exec on server sockets (could be required for spawning processes in requests)", uwsgi_opt_true, &uwsgi.close_on_exec2, 0},
 	{"mode", required_argument, 0, "set uWSGI custom mode", uwsgi_opt_set_str, &uwsgi.mode, 0},
 	{"env", required_argument, 0, "set environment variable", uwsgi_opt_set_env, NULL, 0},
-    {"env-ticked", required_argument, 0, "set environment variable with value that may be quoted", uwsgi_opt_set_env_ticket, NULL, 0},
+    {"env-ticked", required_argument, 0, "set environment variable with value that may be quoted", uwsgi_opt_set_env_ticked, NULL, 0},
 	{"ienv", required_argument, 0, "set environment variable (IMMEDIATE version)", uwsgi_opt_set_env, NULL, UWSGI_OPT_IMMEDIATE},
 	{"envdir", required_argument, 0, "load a daemontools compatible envdir", uwsgi_opt_add_string_list, &uwsgi.envdirs, 0},
 	{"early-envdir", required_argument, 0, "load a daemontools compatible envdir ASAP", uwsgi_opt_envdir, NULL, UWSGI_OPT_IMMEDIATE},
@@ -4456,16 +4456,14 @@ void uwsgi_opt_set_env_ticked(char *opt, char *value, void *none) {
 	size_t first_quote_index = strcspn(value, quote_characters);
 	
 	if (first_quote_index != strlen(value)) {
-		char quote_used[] = {value[first_quote_index], '\0'};
-		
 		char * second_quote = strrchr(value, value[first_quote_index]);
 		
-		if (second_quote - value > first_quote_index) {
+		if ((size_t)(second_quote - value) > first_quote_index) {
 			size_t second_quote_index = second_quote - value;
 			char *stripped_value = calloc(strlen(value) - 2, sizeof(char));
 			
 			size_t stripped_index = 0;
-			for (int i=0; i < strlen(value); ++i) {
+			for (size_t i=0; i < strlen(value); ++i) {
 				if (i == first_quote_index || i == second_quote_index) {
 					continue;
 				}
