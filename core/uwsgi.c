@@ -4473,7 +4473,7 @@ void uwsgi_opt_set_env_ticked(char *opt, char *value, void *none) {
 				stripped_value[stripped_index++] = value[i];
 			}
 			for (i=0; i <= strlen(stripped_value); ++i) {
-				value[i] = stripped_value[i]
+                value[i] = stripped_value[i];
 			}
 			free(stripped_value);
 		}
