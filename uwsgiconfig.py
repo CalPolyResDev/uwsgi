@@ -27,6 +27,9 @@ try:
 except ImportError:
     import configparser as ConfigParser
 
+
+PY3 = sys.version_info[0] == 3
+
 GCC = os.environ.get('CC', sysconfig.get_config_var('CC'))
 if not GCC:
     GCC = 'gcc'
@@ -84,6 +87,7 @@ report = {
     'debug': False,
     'plugin_dir': False,
     'zlib': False,
+    'ucontext': False,
 }
 
 verbose_build = False
@@ -167,6 +171,38 @@ def spcall2(cmd):
         return p.stderr.read().rstrip()
     else:
         return None
+
+
+def test_snippet(snippet):
+    """Compile a C snippet to see if features are available at build / link time."""
+    if not isinstance(snippet, bytes):
+        if PY3:
+            snippet = bytes(snippet, sys.getdefaultencoding())
+        else:
+            snippet = bytes(snippet)
+    cmd = "{} -xc - -o /dev/null".format(GCC)
+    p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    p.communicate(snippet)
+    return p.returncode == 0
+
+
+def has_usable_ucontext():
+    if uwsgi_os in ('OpenBSD', 'Haiku'):
+        return False
+    if uwsgi_os.startswith('CYGWIN'):
+        return False
+    if uwsgi_os == 'Darwin' and uwsgi_os_k.startswith('8'):
+        return False
+    if uwsgi_cpu[0:3] == 'arm':
+        return False
+    # check for ucontext.h functions definitions, musl has only declarations
+    return test_snippet("""#include <ucontext.h>
+int main()
+{
+	ucontext_t uc;
+	getcontext(&uc);
+	return 0;
+}""")
 
 
 def spcall3(cmd):
@@ -270,7 +306,7 @@ def build_uwsgi(uc, print_only=False, gcll=None):
             if not p or p == 'None':
                 continue
             if p == 'ugreen':
-                if uwsgi_os == 'OpenBSD' or uwsgi_cpu[0:3] == 'arm' or uwsgi_os == 'Haiku' or uwsgi_os.startswith('CYGWIN') or (uwsgi_os == 'Darwin' and uwsgi_os_k.startswith('8')):
+                if not report['ucontext']:
                     continue
             epc += "UDEP(%s);" % p
             eplc += "ULEP(%s);" % p
@@ -404,7 +440,7 @@ def build_uwsgi(uc, print_only=False, gcll=None):
                     continue
 
                 if p == 'ugreen':
-                    if uwsgi_os == 'OpenBSD' or uwsgi_cpu[0:3] == 'arm' or uwsgi_os == 'Haiku' or uwsgi_os.startswith('CYGWIN') or (uwsgi_os == 'Darwin' and uwsgi_os_k.startswith('8')):
+                    if not report['ucontext']:
                         continue
 
                 path = path.rstrip('/')
@@ -842,11 +878,17 @@ class uConf(object):
             if GCC in ('clang',):
                 self.libs.remove('-rdynamic')
 
+        if uwsgi_os.startswith('CYGWIN'):
+            self.libs.remove('-rdynamic')
+
         # compile extras
         extras = self.get('extras', None)
         if extras:
             for extra in extras.split(','):
                 self.gcc_list.append(extra)
+
+        # check for usable ucontext
+        report['ucontext'] = has_usable_ucontext()
 
         # set locking subsystem
         locking_mode = self.get('locking', 'auto')
@@ -1382,7 +1424,7 @@ def build_plugin(path, uc, cflags, ldflags, libs, name=None):
         pass
 
     if uc:
-        plugin_dest = uc.get('plugin_dir') + '/' + name + '_plugin'
+        plugin_dest = uc.get('plugin_build_dir', uc.get('plugin_dir')) + '/' + name + '_plugin'
     else:
         plugin_dest = name + '_plugin'
 

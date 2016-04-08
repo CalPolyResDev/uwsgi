@@ -2,7 +2,7 @@
 
  *** uWSGI ***
 
- Copyright (C) 2009-2015 Unbit S.a.s. <info@unbit.it>
+ Copyright (C) 2009-2016 Unbit S.a.s. <info@unbit.it>
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -679,6 +679,7 @@ static struct uwsgi_option uwsgi_base_options[] = {
 	{"subscribe2", required_argument, 0, "subscribe to the specified subscription server using advanced keyval syntax", uwsgi_opt_add_string_list, &uwsgi.subscriptions2, UWSGI_OPT_MASTER},
 	{"subscribe-freq", required_argument, 0, "send subscription announce at the specified interval", uwsgi_opt_set_int, &uwsgi.subscribe_freq, 0},
 	{"subscription-tolerance", required_argument, 0, "set tolerance for subscription servers", uwsgi_opt_set_int, &uwsgi.subscription_tolerance, 0},
+	{"subscription-tolerance-inactive", required_argument, 0, "set tolerance for subscription servers for inactive vassals", uwsgi_opt_set_int, &uwsgi.subscription_tolerance_inactive, 0},
 	{"unsubscribe-on-graceful-reload", no_argument, 0, "force unsubscribe request even during graceful reload", uwsgi_opt_true, &uwsgi.unsubscribe_on_graceful_reload, 0},
 	{"start-unsubscribed", no_argument, 0, "configure subscriptions but do not send them (useful with master fifo)", uwsgi_opt_true, &uwsgi.subscriptions_blocked, 0},
 	{"subscription-clear-on-shutdown", no_argument, 0, "force clear instead of unsubscribe during shutdown", uwsgi_opt_true, &uwsgi.subscription_clear_on_shutdown, 0},
@@ -1865,7 +1866,7 @@ void uwsgi_plugins_atexit(void) {
 
 void uwsgi_backtrace(int depth) {
 
-#if (defined(__GLIBC__) && !defined(__UCLIBC__))|| (defined(__APPLE__) && !defined(NO_EXECINFO)) || defined(UWSGI_HAS_EXECINFO)
+#if defined(__GLIBC__) || (defined(__APPLE__) && !defined(NO_EXECINFO)) || defined(UWSGI_HAS_EXECINFO)
 
 #include <execinfo.h>
 
